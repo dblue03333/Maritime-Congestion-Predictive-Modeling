@@ -65,6 +65,7 @@ The resulting Gold dataset is highly optimized for sequence modeling (LSTMs, Tra
 Because the Parquet datasets are too large for GitHub (~1.3GB total), they are hosted entirely on Kaggle. This repository contains the **logic, documentation, and notebooks** required to reproduce, post-process, and download the data.
 
 ### 📥 1. Getting the Data (No Fabric Required)
+
 If you just want to use the ML-ready dataset, you do not need to run the data pipeline from scratch. We provide a downloader notebook to pull data directly from Kaggle into your local environment:
 
 * **[`download_kaggle_data.ipynb`](download_kaggle_data.ipynb)**: A simple utility notebook using the Kaggle API. It allows you to download either the final merged dataset (`ais_2023_2025_clean.parquet`) or individual half-year batches (e.g., `ais_2023H2.parquet`) directly to a local `data/` folder.
@@ -72,38 +73,46 @@ If you just want to use the ML-ready dataset, you do not need to run the data pi
 ---
 
 ### 🔄 2. Full Pipeline Reproduction
-If you want to reconstruct the dataset from scratch using raw NOAA files or understand the exact engineering steps, follow the workflow below. 
+
+If you want to reconstruct the dataset from scratch using raw NOAA files or understand the exact engineering steps, follow the workflow below.
 
 **Prerequisites:**
+
 * Microsoft Fabric workspace (or Azure Synapse with PySpark + Delta Lake) for Steps 1 & 2.
 * Python 3.9+ with `polars`, `pyarrow` for Steps 3 & 4.
 
 #### **Step 1 — Raw Ingestion ([`Ingest_One_Day.ipynb`](Ingest_One_Day.ipynb))**
+
 * **Environment:** Microsoft Fabric (PySpark)
 * **Function:** Connects to NOAA servers, downloads heavily compressed `.csv.zst` daily files, decompresses them, spatially filters for UTM Zone 11 (Port of LA/LB region), and appends to a Delta Lake Bronze table.
 * *Note:* Designed for sequential execution (one 6-month batch at a time) to prevent Spark OOM errors.
 
 #### **Step 2 — Feature Engineering ([`AIS_Preprocessing.ipynb`](AIS_Preprocessing.ipynb))**
+
 * **Environment:** Microsoft Fabric (PySpark)
 * **Function:** Contains the full Silver → Gold transformation. Performs waterfall imputation, noise filtering (SOG > 30), and computes all complex kinematic features (Haversine distance, Forward Azimuth heading error, 3-ping rolling acceleration, mooring trigger, delay calculation).
 
 #### **Step 3 — Weather Integration ([`weather_merging.ipynb`](weather_merging.ipynb))**
+
 * **Environment:** Local / Standard Jupyter Notebook
 * **Function:** Weather is a crucial confounder in port congestion. This notebook fetches historical marine weather data (wind speed, wave height, weather codes) via the Open-Meteo Marine API and performs a spatial-temporal join (truncated hourly timestamps) onto the concatenated AIS Parquet batches.
 
 #### **Step 4 — Local Post-Processing ([`post_process_gold.py`](post_process_gold.py))**
+
 * **Environment:** Local Python script (Polars)
 * **Function:** Final quality assurance layer. After exporting the Gold Parquet from Fabric, this script clips acceleration outliers, caps delay extremes (30-day max), fixes `time_in_zone_hours` cross-visit accumulation (using `cum_sum().over("mmsi", "visit_id")`), and drops redundant columns like `cargo`.
 
 ---
 
 **What you get after full reproduction:**
+
 * `ais_2023_2025_clean.parquet` — 21.7M rows, 53 features, ML-ready
 * Identical schema and logic to the [published Kaggle dataset](https://www.kaggle.com/datasets/4ff147dd68480c9e19df9e2f4d6eda1c3e41477b0cf56af0ac28f58b6eec2795)
 
 > **Note on imperfection:** The notebooks were written during active development and are not refactored for clean publication. Some cells have exploratory code and comments. The logic is correct and traceable, but the notebooks are **working documents**, not polished tutorials.
 
 **Sanity Check (MMSI 538004375, Visit 1):**
+
 * **Entry:** 2023-08-09 22:48:59 UTC (entered Zone 11)
 * **Moored Trigger:** 2023-08-13 14:24:56 UTC
 * **Calculated Delay:** 5,255.95 min (~87.6 hours) ✅
@@ -359,7 +368,7 @@ Three data quality issues were identified during the review. All were fixed via 
 | 7 | **Port reference is a single point** (33.72°N, 118.26°W) | ~0.5km systematic offset for Long Beach-side vs LA-side ships | 🟢 Negligible | Acceptable for a zone-level analysis; Vincenty's formulae could improve precision |
 | 8 | **No schema validation framework** | No automated data contracts → relies on manual verification | 🟡 Low | Post-processing script provides one-time validation |
 
-## 8. Future Improvements (With More Time)
+<!-- ## 8. Future Improvements (With More Time)
 
 | # | Improvement | Expected Impact on Model | Effort |
 |---|---|---|---|
@@ -371,7 +380,7 @@ Three data quality issues were identified during the review. All were fixed via 
 | 6 | **AIS trajectory reconstruction** — Cubic spline interpolation | Fill ping gaps → smoother acceleration and heading features | High |
 | 7 | **DVC versioning** — [Data Version Control](https://dvc.org/) | Full dataset reproducibility and version tracking | Medium |
 | 8 | **Multi-port expansion** — Generalize geofence to other ports | Broader model applicability (e.g., Rotterdam, Singapore) | High |
-| 9 | **Real-time streaming** — Apache Kafka/Flink for live AIS feeds | Transition from batch to real-time delay prediction | High |
+| 9 | **Real-time streaming** — Apache Kafka/Flink for live AIS feeds | Transition from batch to real-time delay prediction | High | -->
 
 ---
 
