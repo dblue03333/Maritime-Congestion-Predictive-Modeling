@@ -1,9 +1,15 @@
-pandas
-numpy
+# HarborMind — Dependencies
+# MLOps
+polars
+lightgbm
 scikit-learn
-xgboost
-shap
-matplotlib
-seaborn
-jupyter
+optuna
+mlflow
 joblib
+numpy
+matplotlib
+kaggle
+
+# Agentic (Phase 2)
+gradio
+requests
