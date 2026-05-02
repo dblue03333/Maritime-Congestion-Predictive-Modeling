@@ -1,72 +1,91 @@
-# Maritime Congestion Predictive Modeling 🚢
+# ⚓ HarborMind: Maritime Congestion Predictive Pipeline
 
-**An end-to-end Machine Learning pipeline to predict port congestion and vessel delays using Synthetic Data and Explainable AI (SHAP).**
+![Python](https://img.shields.io/badge/python-3.10-blue) ![PySpark](https://img.shields.io/badge/PySpark-Data%20Engineering-E25A1C) ![MLflow](https://img.shields.io/badge/MLflow-Tracking-0194E2) ![LightGBM](https://img.shields.io/badge/LightGBM-Predictive%20Model-yellow)
 
-This repository demonstrates a complete predictive system designed to forecast shipping delays based on port capacity, environmental conditions (wind/weather), and tactical arrival data. 
+> **Note:** This repository contains the **Data Engineering** and **MLOps pipeline** that powers the backend of HarborMind. The Agentic UI (Gemma 4 integration) is hosted in a separate module.
 
----
+## 📖 Overview
+Global trade relies heavily on the efficiency of maritime ports. Congestion at major hubs like the Port of Long Beach leads to massive CO2 emissions from idling ships and disrupts global supply chains.
 
-## 🌟 Key Highlights
+**HarborMind** is an end-to-end Machine Learning pipeline designed to forecast vessel delays using raw satellite tracking data. By calculating precise delay predictions with statistical confidence bounds, this pipeline serves as the "brain" for a downstream Multi-Agent decision-support system.
 
-- **Domain-Driven Synthetic Data Generation**: Designed a custom Python generator that models real-world maritime physics (Exponential Yard Capacity Saturation based on M/M/1 Queueing Theory) to simulate realistic port bottlenecks without violating data privacy.
-- **Model Evolution & Benchmarking**: Systematically evolved from simple Linear Baseline data (V1) to complex Non-Linear operational realities (V2), benchmarking **Logistic Regression**, **Random Forest**, and **XGBoost**.
-- **99%+ Prediction Accuracy**: Achieved state-of-the-art ROC-AUC by leveraging Gradient Boosting (XGBoost) to capture conditionally compounding interactions (e.g., "Midnight Gridlock" penalties).
-- **Explainable AI (XAI)**: Integrated **SHAP** (Shapley Additive Explanations) for both Strategic (Global) and Tactical (Local) interpretability, ensuring every prediction is actionable for port operators.
-- **Professional Reporting**: includes a comprehensive technical analysis report authored in **LaTeX**, documenting all design decisions and operational assumptions.
+### 💡 Inspiration & Motivation
+The inspiration for this project originated from an end-to-end technical assessment at Safiri AI ([safiri-port-congestion-ai](https://github.com/dblue03333/safiri-port-congestion-ai)). That initial test contained numerous flaws due to a lack of practical experience and real-world friction. Recognizing those gaps, I decided to build *this* project entirely from scratch. By selecting a highly reliable, massive raw dataset (NOAA MarineCadastre), I aimed to dive deep into data processing, feature engineering, and robust model training to maximize my learning and create a truly production-ready pipeline.
 
 ---
 
-## 📊 System Architecture & Methodology
+## 🏗️ 1. [Data Engineering (Lakehouse Architecture)](./Data-Engineering/)
 
-```mermaid
-graph LR
-    A[Synthetic Data Generator] -->|M/M/1 Physics| B[(V2 Data - 50k+ Rows)]
-    B --> C[Preprocessing & Feature Scaling]
-    C --> D[XGBoost Classifier]
-    D --> E[ROC-AUC Evaluation]
-    E --> F[SHAP Interpretability]
-    F --> G[Actionable Logistics Insights]
-```
+Processing geospatial time-series data requires massive scale. The ETL pipeline was built using a **Medallion Architecture (Bronze/Silver/Gold)** via **PySpark on Microsoft Fabric (Data Lake)**.
 
----
+**Highlights:**
+- **Raw Data:** Processed **21.7M+ AIS terrestrial pings** spanning 30 months (June 2023 - Dec 2025).
+- **Output:** 6,000+ structured vessel visits.
+- **Features Engineered:** 54 complex kinetic, temporal, and spatial features.
+- **Key Techniques:** Kinematic state derivation (acceleration, distance range), Cyclical temporal encoding, Open-Meteo weather integration.
 
-## 📂 Project Structure
-
-- **`data/`**: Custom generator script (`generate_synthetic_data.py`) and sample datasets.
-- **`notebooks/`**: Fully annotated Jupyter notebook (`01_comprehensive_analysis.ipynb`) containing EDA, Model Benchmarking, and SHAP visualizations.
-- **`docs/`**: Professional summary reports in **LaTeX** and **PDF** formats.
-- **`requirements.txt`**: Core dependencies (XGBoost, SHAP, Scikit-learn, etc.).
+👉 **[Read the full Data Engineering documentation →](./Data-Engineering/README.md)**
 
 ---
 
-## 🚀 Quick Start
+## 🧠 2. [MLOps & Predictive Modeling](./ML-Experiment/)
 
-**1. Clone the repository**
-```bash
-git clone https://github.com/your-username/Maritime-Congestion-Predictive-Modeling.git
-cd Maritime-Congestion-Predictive-Modeling
-```
+The predictive core utilizes **LightGBM**, optimized through a rigorous MLOps lifecycle tracked by **MLflow**. We focused heavily on **"Honest AI"** — ensuring predictions are robust against data leakage and accompanied by statistically sound uncertainty bounds.
 
-**2. Install dependencies**
-```bash
-pip install -r requirements.txt
-```
+**Highlights:**
+- **Robust Validation:** Enforced an **Out-of-Time (OOT) strategy** (2023-2024 Train / 2025 Test) to completely eliminate time-series data leakage.
+- **Quantile Regression:** Integrated P10/P50/P90 models to generate uncertainty bounds, achieving a **65.7% quantile coverage**.
+- **Optimization:** Tracked 50+ Bayesian optimization trials via **Optuna**.
+- **Final Metrics:** Achieved an **R² = 0.505** and a **Median Absolute Error (MedAE) of 95 minutes** on the 2025 holdout set.
 
-**3. Explore the Analysis**
-Open `notebooks/01_comprehensive_analysis.ipynb` to see the full data science lifecycle, from visualization to explainability.
+👉 **[Read the full ML Experiment logs, failures, and evolution →](./ML-Experiment/README.md)**
 
 ---
 
-## 📝 Analysis Snippets
+## 🚀 How to Run (Step-by-Step)
 
-> "The data complexity drives the model selection, not the other way around. Our evolution from V1 to V2 showed that simpler models fail to capture the exponential compounding effects of port saturation—a gap XGBoost bridge effortlessly."
+### Option A: Use Pre-processed Data (Recommended for ML)
+
+If you only want to train the model without re-running the entire Data Engineering pipeline:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/DBlue03333/Maritime-Congestion-Predictive-Modeling.git
+   cd Maritime-Congestion-Predictive-Modeling
+   ```
+
+2. **Create and activate a virtual environment:**
+   ```bash
+   # Mac/Linux:
+   python3 -m venv venv
+   source venv/bin/activate
+   
+   # Windows:
+   python -m venv venv
+   venv\Scripts\activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Download the pre-processed dataset from Kaggle:**
+   ```bash
+   cd Data-Engineering
+   jupyter notebook download_kaggle_data.ipynb
+   ```
+   This notebook uses the Kaggle API to download `ais_2023_2025_clean.parquet` (~580MB) directly into `Data-Engineering/data/processed/`.
+
+5. **Run the training pipeline:**
+   ```bash
+   cd ../ML-Experiment
+   python train.py
+   ```
+
+### Option B: Full Pipeline Reproduction (From Raw NOAA Data)
+
+If you want to reproduce the entire ETL pipeline from scratch, see the detailed instructions inside the [Data-Engineering/README.md](./Data-Engineering/README.md). This requires **Microsoft Fabric** (or Azure Synapse with PySpark + Delta Lake).
 
 ---
-
-## 🏆 Certifications & Reports
-For the full mathematical background and domain references (including research on Cat Lai Port bottlenecks and PEMA crane safety standards), please refer to:
-👉 [**Technical Analysis Report (PDF)**](docs/technical_report.pdf)
-
----
-
-> Built by **Nguyen Duc Tuan Dat** | Applied AI & Data Engineer
+*Built by [Kelvin Nguyen](https://github.com/DBlue03333)*

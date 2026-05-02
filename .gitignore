@@ -150,8 +150,17 @@ cython_debug/
 # MacOS
 .DS_Store
 
-# Large Data Files (Ignoring the 500k rows files to keep repo clean)
-data/synthetic_port_data_v1_500000.csv
-data/synthetic_port_data_v2_500000.csv
-data/synthetic_port_data_v1_50000.csv
-data/synthetic_port_data_v2_50000.csv
+# personal document
+personal/
+
+# Data & Large Files (Prevent 580MB Parquet pushes)
+Data-Engineering/data/
+
+# MLflow Tracking (Prevent 13,000+ tiny tracking files)
+ML-Experiment/tracking/
+ML-Experiment/mlruns/
+
+# Ignore all model checkpoints except the final one (for GitHub limits)
+ML-Experiment/models/*
+!ML-Experiment/models/run_20260502_0123/
+!ML-Experiment/models/run_20260502_0123/*

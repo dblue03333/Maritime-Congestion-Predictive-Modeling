@@ -359,28 +359,14 @@ Three data quality issues were identified during the review. All were fixed via 
 
 | # | Limitation | Impact on Model | Severity | Mitigation |
 |---|---|---|---|---|
-| 1 | **Weather from single GPS point** (33.74°N, 118.27°W) via [Open-Meteo](https://open-meteo.com/) | Vessels 30km away may have different wind/wave conditions → weather features slightly noisy | 🟡 Low | Zone is only ~30km wide; single point is adequate for this scale |
-| 2 | **`heading` missing 3.6%** (787K rows) | Class-B transponders omit heading → `heading_error` null for these pings | 🟡 Low | Model can handle nulls; `heading_error` is not the primary predictor |
-| 3 | **`is_in_waiting_area` null 1.15%** (248K rows) | When `status` is null, this composite boolean becomes null → 248K "waiting" pings missed | 🟡 Low | Mooring trigger uses separate physical check (SOG+dist) as backup |
-| 4 | **Requires Microsoft Fabric to re-run** | The pipeline uses PySpark/Delta Lake — needs Fabric or Azure Synapse environment | 🟠 Medium | **Full logic documented in `Ingest_One_Day.ipynb` + `AIS_Preprocessing.ipynb`** — anyone with Fabric access can reproduce step-by-step |
-| 5 | **Single port only** (LA/Long Beach) | Geofence, distance thresholds, berth definitions are port-specific | 🟠 Medium | Architecture is parameterizable; can be adapted to other ports by changing constants |
-| 6 | **738K rows stationary >20km** (3.4%) | Ships drifting far outside waiting zone but still in geofence | 🟢 Negligible | `is_in_waiting_area` correctly excludes these (dist > 20km → False) |
-| 7 | **Port reference is a single point** (33.72°N, 118.26°W) | ~0.5km systematic offset for Long Beach-side vs LA-side ships | 🟢 Negligible | Acceptable for a zone-level analysis; Vincenty's formulae could improve precision |
-| 8 | **No schema validation framework** | No automated data contracts → relies on manual verification | 🟡 Low | Post-processing script provides one-time validation |
-
-<!-- ## 8. Future Improvements (With More Time)
-
-| # | Improvement | Expected Impact on Model | Effort |
-|---|---|---|---|
-| 1 | **Multi-point weather grid** — Fetch at 4-6 points within Zone 11 | Better weather feature accuracy for vessels at zone edges | Medium |
-| 2 | **Tighter visit segmentation** — 12h gap instead of 24h | Fewer false single-visits for ships with short inter-visit gaps | Low |
-| 3 | **Schema validation** — [Great Expectations](https://greatexpectations.io/) or [Pandera](https://pandera.readthedocs.io/) | Automated data quality alerts on pipeline runs | Medium |
-| 4 | **Vincenty's distance** — Replace Haversine (~0.5% error) | Marginal distance precision improvement | Low |
-| 5 | **Unit tests** — pytest for all formula implementations | CI/CD confidence; catch regressions early | Low |
-| 6 | **AIS trajectory reconstruction** — Cubic spline interpolation | Fill ping gaps → smoother acceleration and heading features | High |
-| 7 | **DVC versioning** — [Data Version Control](https://dvc.org/) | Full dataset reproducibility and version tracking | Medium |
-| 8 | **Multi-port expansion** — Generalize geofence to other ports | Broader model applicability (e.g., Rotterdam, Singapore) | High |
-| 9 | **Real-time streaming** — Apache Kafka/Flink for live AIS feeds | Transition from batch to real-time delay prediction | High | -->
+| 1 | **Requires Microsoft Fabric to re-run** | The pipeline uses PySpark/Delta Lake — needs Fabric or Azure Synapse environment | Medium | **Full logic documented in `Ingest_One_Day.ipynb` + `AIS_Preprocessing.ipynb`** — anyone with Fabric access can reproduce step-by-step |
+| 2 | **Single port only** (LA/Long Beach) | Geofence, distance thresholds, berth definitions are port-specific | Medium | Architecture is parameterizable; can be adapted to other ports by changing constants |
+| 3 | **Weather from single GPS point** (33.74°N, 118.27°W) via [Open-Meteo](https://open-meteo.com/) | Vessels 30km away may have different wind/wave conditions → weather features slightly noisy | Low | Zone is only ~30km wide; single point is adequate for this scale |
+| 4 | **No schema validation framework** | No automated data contracts → relies on manual verification | Low | Post-processing script provides one-time validation |
+| 5 | **`heading` missing 3.6%** (787K rows) | Class-B transponders omit heading → `heading_error` null for these pings | Low | Model can handle nulls; `heading_error` is not the primary predictor |
+| 6 | **`is_in_waiting_area` null 1.15%** (248K rows) | When `status` is null, this composite boolean becomes null → 248K "waiting" pings missed | Low | Mooring trigger uses separate physical check (SOG+dist) as backup |
+| 7 | **738K rows stationary >20km** (3.4%) | Ships drifting far outside waiting zone but still in geofence | Negligible | `is_in_waiting_area` correctly excludes these (dist > 20km → False) |
+| 8 | **Port reference is a single point** (33.72°N, 118.26°W) | ~0.5km systematic offset for Long Beach-side vs LA-side ships | Negligible | Acceptable for a zone-level analysis; Vincenty's formulae could improve precision |
 
 ---
 
