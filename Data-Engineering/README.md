@@ -12,7 +12,7 @@ The foundation of HarborMind is a robust Data Engineering pipeline designed to p
 * **The Engineering Solution:** Instead of scaling up expensive compute resources, a **memory-optimized sequential pipeline** was engineered in Microsoft Fabric:
   * Implemented sequential micro-batching (6-month intervals).
   * Enforced aggressive Garbage Collection: download -> decompress -> append to Delta Table -> immediately delete raw files.
-* **Result:** The pipeline ran flawlessly for ~50 hours across 3 days without a single node crash, handling data that exceeds standard memory limits while ensuring 100% data integrity.
+* **Result:** The pipeline ran robustly for ~50 hours across 3 days without a single node crash, handling data that exceeds standard memory limits. (Note: Due to source anomalies, 2-3 days of raw data were dropped during the run, maintaining >99% data integrity overall).
 
 ---
 
@@ -40,7 +40,7 @@ The architecture strictly follows the Medallion pattern to ensure data lineage, 
   * The raw data lacks a defined "delay" label.
   * Implemented a **Robust Mooring Trigger**: `(status == 5) OR (SOG < 0.5 knots & Distance to Port < 2km)` to bypass human-input errors in AIS transponders.
   * Extracted 6,562 highly validated, distinct port visits from the continuous data stream.
-* **Final Merging & Weather Integration:** The 5 individual half-year batches (which contain *only* AIS kinematics and spatial features) were concatenated into a single dataset. **Only this final merged dataset (`ais_2023_2025.parquet`) was spatially and temporally merged with Open-Meteo Marine API data** (wind speed, wave height, weather codes) via truncated hourly timestamps to create the ultimate ML-ready file.
+* **Final Merging & Weather Integration:** The 5 individual half-year batches (which contain *only* AIS kinematics and spatial features) were concatenated into a single dataset. **Only this final merged dataset (`ais_2023_2025_clean.parquet`) was spatially and temporally merged with Open-Meteo Marine API data** (wind speed, wave height, weather codes) via truncated hourly timestamps to create the ultimate ML-ready file.
 
 ---
 
