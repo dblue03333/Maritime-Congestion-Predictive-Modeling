@@ -21,6 +21,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from datetime import datetime
+from pathlib import Path
 from sklearn.metrics import (
     mean_absolute_error,
     mean_squared_error,
@@ -32,10 +33,14 @@ from sklearn.metrics import (
 # 1. CONFIGURATION
 # ============================================================
 
+# Anchor paths to the script's location for 100% cross-platform & CWD-agnostic reproducibility
+SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent
+
 CONFIG = {
-    # Data
-    "data_path": "Data-Engineering/data/processed/ais_2023_2025_clean.parquet",
-    "model_dir": "mlruns/models",
+    # Data (Dynamically resolved absolute paths)
+    "data_path": str(PROJECT_ROOT / "Data-Engineering" / "data" / "ais_2023_2025_clean.parquet"),
+    "model_dir": str(SCRIPT_DIR / "mlruns" / "models"),
 
     # Mode: "retrospective" (full visit data) or "prospective" (arrival-time only)
     "mode": "retrospective",
@@ -754,11 +759,19 @@ def save_artifacts(model, metrics, best_params, feature_cols, config,
     with open(os.path.join(save_dir, "features.json"), "w") as f:
         json.dump(feature_cols, f, indent=2)
 
-    # Update 'latest' symlink
+    # Update 'latest' pointer (Symlink normally, fallback to copy on Windows without Admin)
+    import shutil
     latest_link = os.path.join(config["model_dir"], "latest")
     if os.path.islink(latest_link):
         os.unlink(latest_link)
-    os.symlink(f"run_{run_tag}", latest_link)
+    elif os.path.exists(latest_link):
+        shutil.rmtree(latest_link)
+        
+    try:
+        os.symlink(f"run_{run_tag}", latest_link)
+    except OSError:
+        # Fallback for Windows without Administrator privileges (WinError 1314)
+        shutil.copytree(save_dir, latest_link)
     print(f"  Latest → {save_dir}")
 
     # Log to MLflow
@@ -782,7 +795,7 @@ def main():
     print(f"   Started: {start.strftime('%Y-%m-%d %H:%M:%S')}")
 
     # MLflow setup
-    tracking_uri = "file://" + os.path.join(os.getcwd(), "mlruns", "tracking")
+    tracking_uri = "sqlite:///mlflow.db"
     mlflow.set_tracking_uri(tracking_uri)
     experiment_name = "HarborMind_Delay_Prediction"
     mlflow.set_experiment(experiment_name)

@@ -159,6 +159,7 @@ Data-Engineering/data/
 # MLflow Tracking (Prevent 13,000+ tiny tracking files)
 ML-Experiment/tracking/
 ML-Experiment/mlruns/
+ML-Experiment/mlflow.db
 
 # Ignore all model checkpoints except the final one (for GitHub limits)
 ML-Experiment/models/*

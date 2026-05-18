@@ -70,17 +70,23 @@ If you only want to train the model without re-running the entire Data Engineeri
    pip install -r requirements.txt
    ```
 
-4. **Download the pre-processed dataset from Kaggle:**
+4. **Configure Kaggle API:**
+   Ensure you have your `kaggle.json` API token placed in `~/.kaggle/kaggle.json` (Mac/Linux) or `C:\Users\<User>\.kaggle\kaggle.json` (Windows).
+
+5. **Download the pre-processed dataset from Kaggle:**
    ```bash
    cd Data-Engineering
-   jupyter notebook download_kaggle_data.ipynb
+   python download.py
    ```
-   This notebook uses the Kaggle API to download `ais_2023_2025_clean.parquet` (~580MB) directly into `Data-Engineering/data/processed/`.
+   *This uses the Kaggle API to download `ais_2023_2025_clean.parquet` (~580MB) directly into `Data-Engineering/data/`.*
 
-5. **Run the training pipeline:**
+6. **Run the training pipeline & Track with MLflow:**
    ```bash
    cd ../ML-Experiment
    python train.py
+   
+   # After training completes, launch the MLflow UI to view results:
+   mlflow ui --backend-store-uri sqlite:///mlflow.db
    ```
 
 ### Option B: Full Pipeline Reproduction (From Raw NOAA Data)
