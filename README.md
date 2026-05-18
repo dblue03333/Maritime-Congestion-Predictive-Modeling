@@ -2,12 +2,12 @@
 
 ![Python](https://img.shields.io/badge/python-3.10-blue) ![PySpark](https://img.shields.io/badge/PySpark-Data%20Engineering-E25A1C) ![MLflow](https://img.shields.io/badge/MLflow-Tracking-0194E2) ![LightGBM](https://img.shields.io/badge/LightGBM-Predictive%20Model-yellow)
 
-> **Note:** This repository contains the **Data Engineering** and **MLOps pipeline** that powers the backend of HarborMind. The Agentic UI (Gemma 4 integration) is hosted in a separate module.
+> **Note:** This repository contains the **Data Engineering** and **MLOps pipeline** that powers the backend of HarborMind. The Agentic UI (Gemma 4 integration) is hosted in the main repository: [**HarborMind (Agent/UI)**](https://github.com/DBlue03333/HarborMind).
 
 ## 📖 Overview
 Global trade relies heavily on the efficiency of maritime ports. Congestion at major hubs like the Port of Long Beach leads to massive CO2 emissions from idling ships and disrupts global supply chains.
 
-**HarborMind** is an end-to-end Machine Learning pipeline designed to forecast vessel delays using raw satellite tracking data. By calculating precise delay predictions with statistical confidence bounds, this pipeline serves as the "brain" for a downstream Multi-Agent decision-support system.
+**HarborMind** is an end-to-end Machine Learning pipeline designed to forecast vessel delays using raw terrestrial AIS tracking data. By calculating precise delay predictions with statistical confidence bounds, this pipeline serves as the "brain" for a downstream Multi-Agent decision-support system.
 
 ### 💡 Inspiration & Motivation
 The inspiration for this project originated from an end-to-end technical assessment at Safiri AI ([safiri-port-congestion-ai](https://github.com/dblue03333/safiri-port-congestion-ai)). That initial test contained numerous flaws due to a lack of practical experience and real-world friction. Recognizing those gaps, I decided to build *this* project entirely from scratch. By selecting a highly reliable, massive raw dataset (NOAA MarineCadastre), I aimed to dive deep into data processing, feature engineering, and robust model training to maximize my learning and create a truly production-ready pipeline.
